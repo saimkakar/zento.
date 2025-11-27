@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clipcart - Your Daily Lifestyle Store for Modern Essentials</title>
+    <meta name="description" content="Discover modern essentials and lifestyle products at Clipcart. Shop the latest trends in electronics, fashion, home goods, and more. Fast shipping and secure checkout.">
+    <meta name="keywords" content="e-commerce, online store, lifestyle, electronics, fashion, home goods, shopping, clipcart">
+    <meta name="author" content="Clipcart Team">
+    <title>Clipcart - Your Daily Lifestyle Store</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0f172a', /* Dark slate/Black for a premium minimal look */
+                        secondary: '#334155',
+                        accent: '#2563eb', /* Blue accent */
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Custom Orange for Admin */
+        .bg-orange-500 { background-color: #f97316; }
+        .hover\:bg-orange-600:hover { background-color: #ea580c; }
+        .focus\:border-orange-500:focus { border-color: #f97316; }
+        .text-orange-500 { color: #f97316; }
+        .hover\:text-orange-500:hover { color: #f97316; }
+
+        /* Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .glass-dark {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hover-underline-animation {
+            display: inline-block;
+            position: relative;
+        }
+
+        .hover-underline-animation::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            transform: scaleX(0);
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: #0f172a;
+            transform-origin: bottom right;
+            transition: transform 0.25s ease-out;
+        }
+
+        .hover-underline-animation:hover::after {
+            transform: scaleX(1);
+            transform-origin: bottom left;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        .highlight {
+            background-color: #fef08a; /* yellow-200 */
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+        
+        /* Utility to hide scrollbar for horizontal scrolling areas */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4090716243396783"
+     crossorigin="anonymous"></script>
+
+<link rel="icon" type="image/png" href="favicon.png">
+
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col scroll-smooth">
+
+    <nav class="glass fixed w-full top-0 z-50 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex-shrink-0 flex items-center cursor-pointer" onclick="navigateTo('home')">
+                    <img src="logo.png" alt="Clipcart" class="h-10 w-auto mr-2">
+                    <span class="font-bold text-2xl tracking-tight text-slate-900">Clip<span class="text-primary">cart</span></span>
+                </div>
+
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#home" class="text-slate-600 hover:text-primary font-medium hover-underline-animation transition-colors">Home</a>
+                    <a href="#about" class="text-slate-600 hover:text-primary font-medium hover-underline-animation transition-colors">About</a>
+                    
+                    <div class="relative group">
+                        <a href="#products" class="text-slate-600 hover:text-primary font-medium hover-underline-animation transition-colors flex items-center">
+                            Shop <i class="fa-solid fa-chevron-down text-xs ml-1 pt-1"></i>
+                        </a>
+                        <div class="absolute left-0 mt-2 w-56 bg-white rounded-md shadow-xl py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 border border-slate-100">
+                            <a href="#products?cat=Home%20%26%20Kitchen" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary">Home & Kitchen</a>
+                            <a href="#products?cat=Fashion" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary">Fashion</a>
+                            <a href="#products?cat=Electronics" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary">Electronics</a>
+                            <a href="#products?cat=Fitness" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary">Fitness</a>
+                            <a href="#products?cat=Gaming" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary">Gaming</a>
+                            <div class="border-t border-slate-100 my-1"></div>
+                            <a href="#products" class="block px-4 py-2 text-sm font-semibold text-primary hover:bg-slate-50">View All</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hidden md:flex items-center space-x-4">
+                    <button onclick="toggleSearchOverlay()" class="text-slate-500 hover:text-primary transition-colors">
+                        <i class="fa-solid fa-magnifying-glass text-lg"></i>
+                    </button>
+                    <div id="auth-links">
+                        <a href="#login" class="px-4 py-2 rounded-full bg-primary text-white text-sm font-medium hover:bg-slate-800 transition-colors shadow-md hover:shadow-lg">Login</a>
+                    </div>
+                </div>
+
+                <div class="flex md:hidden items-center space-x-4">
+                    <button onclick="toggleSearchOverlay()" class="text-slate-600 hover:text-primary transition-colors">
+                        <i class="fa-solid fa-magnifying-glass text-lg"></i>
+                    </button>
+                    <button onclick="toggleMobileMenu()" class="text-slate-600 hover:text-primary focus:outline-none">
+                        <i class="fa-solid fa-bars text-2xl" id="mobile-menu-icon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-slate-100 transition-all duration-300 overflow-hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#home" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary hover:bg-slate-50">Home</a>
+                <a href="#about" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary hover:bg-slate-50">About</a>
+                <a href="#products" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary hover:bg-slate-50">Shop All</a>
+                <div id="mobile-auth" class="pt-2 border-t border-slate-100 mt-2">
+                    <a href="#login" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-primary hover:bg-slate-50">Login</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div id="search-overlay" class="fixed inset-0 bg-slate-900/50 z-[60] hidden backdrop-blur-sm flex justify-center pt-24 transition-opacity opacity-0">
+        <div class="w-full max-w-3xl px-4" onclick="event.stopPropagation()">
+            <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+                <div class="flex items-center p-4 border-b border-slate-100">
+                    <i class="fa-solid fa-magnifying-glass text-slate-400 text-xl ml-2"></i>
+                    <input type="text" id="global-search-input" class="w-full px-4 py-2 text-lg focus:outline-none text-slate-700" placeholder="Search for products, brands, categories..." autocomplete="off">
+                    <button onclick="toggleSearchOverlay()" class="text-slate-400 hover:text-slate-600">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+                <div id="search-results" class="max-h-[60vh] overflow-y-auto p-0 hidden">
+                    </div>
+                <div class="bg-slate-50 p-3 text-xs text-slate-500 text-center">
+                    Press ESC to close
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main id="app" class="flex-grow pt-16">
+        </main>
+
+    <footer class="bg-slate-900 text-white pt-12 pb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+                <div class="col-span-2 md:col-span-1">
+                    <div class="flex items-center mb-4">
+                        <img src="logo.png" alt="Clipcart" class="h-8 w-auto mr-2 bg-white rounded p-0.5">
+                        <span class="font-bold text-xl tracking-tight">Clip<span class="text-blue-400">cart</span></span>
+                    </div>
+                    <p class="text-slate-400 text-sm leading-relaxed">
+                        Your trusted marketplace for everything from home essentials to the latest tech and fashion trends.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+                    <ul class="space-y-2 text-slate-400 text-sm">
+                        <li><a href="#home" class="hover:text-white transition-colors">Home</a></li>
+                        <li><a href="#products" class="hover:text-white transition-colors">Shop All</a></li>
+                        <li><a href="#about" class="hover:text-white transition-colors">About Us</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Categories</h3>
+                    <ul class="space-y-2 text-slate-400 text-sm">
+                        <li><a href="#products?cat=Home%20%26%20Kitchen" class="hover:text-white transition-colors">Home & Kitchen</a></li>
+                        <li><a href="#products?cat=Fashion" class="hover:text-white transition-colors">Fashion</a></li>
+                        <li><a href="#products?cat=Electronics" class="hover:text-white transition-colors">Electronics</a></li>
+                        <li><a href="#products?cat=Gaming" class="hover:text-white transition-colors">Gaming</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Connect</h3>
+                    <div class="flex space-x-4">
+                        <a href="https://whatsapp.com/channel/0029VbC1X2YEQIal1tw5yY30" target="_blank" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-[#25D366] transition-colors" title="WhatsApp">
+                            <i class="fa-brands fa-whatsapp text-lg"></i>
+                        </a>
+                        <a href="https://www.instagram.com/clipcart_com/" target="_blank" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-[#E1306C] transition-colors" title="Instagram">
+                            <i class="fa-brands fa-instagram text-lg"></i>
+                        </a>
+                        <a href="https://www.youtube.com/@catclownery" target="_blank" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-[#FF0000] transition-colors" title="YouTube">
+                            <i class="fa-brands fa-youtube"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-slate-500 text-sm">&copy; 2023 Clipcart. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // --- FIREBASE CONFIGURATION ---
+   const firebaseConfig = {
+  apiKey: "AIzaSyCrpPfxjKV6jQggbRSmO00Svdu4tVuXLAo",
+  authDomain: "clipnotes-s.firebaseapp.com",
+  databaseURL: "https://clipnotes-s-default-rtdb.firebaseio.com",
+  projectId: "clipnotes-s",
+  storageBucket: "clipnotes-s.firebasestorage.app",
+  messagingSenderId: "12242179920",
+  appId: "1:12242179920:web:d428675ca51ae56dff3e55",
+  measurementId: "G-W801MFHXYM"
+};
+        // --- DATA & STATE ---
+        // Updated Categories
+        const CATEGORIES = ['Home & Kitchen', 'Fashion', 'Electronics', 'Fitness', 'Gaming'];
+        let products = [];
+        let auth = null;
+        let isFirebaseActive = false;
+
+        // Initialize Logic
+        function init() {
+            initFirebase();
+            loadProducts();
+            setupRouter();
+            updateAuthUI();
+            setupSearch();
+        }
+
+        function initFirebase() {
+            try {
+                if (typeof firebase !== 'undefined' && firebaseConfig.apiKey !== "YOUR_API_KEY_HERE") {
+                    firebase.initializeApp(firebaseConfig);
+                    auth = firebase.auth();
+                    isFirebaseActive = true;
+                    
+                    // Auth State Listener
+                    auth.onAuthStateChanged((user) => {
+                        if (user) {
+                            // Secure Admin Check - Strict
+                            if (user.email === 'saimkakar2007@gmail.com') {
+                                const userData = {
+                                    name: 'Admin',
+                                    email: user.email,
+                                    role: 'admin'
+                                };
+                                localStorage.setItem('tv_user', JSON.stringify(userData));
+                                updateAuthUI();
+                                if(window.location.hash === '#login') {
+                                    navigateTo('admin');
+                                }
+                            } else {
+                                // If a user somehow logs in via Firebase but isn't the admin (e.g. if registration was open previously)
+                                // We treat them as a regular user, OR we can block them if strict single-user mode is desired.
+                                // The prompt says "allow only one specific admin".
+                                // We will treat non-matching emails as Guest/Standard users but DENY admin access.
+                                const userData = {
+                                    name: 'User',
+                                    email: user.email,
+                                    role: 'user'
+                                };
+                                localStorage.setItem('tv_user', JSON.stringify(userData));
+                                updateAuthUI();
+                                if(window.location.hash === '#login') {
+                                    navigateTo('home');
+                                }
+                            }
+                        } else {
+                            localStorage.removeItem('tv_user');
+                            updateAuthUI();
+                        }
+                    });
+                } else {
+                    console.log("Firebase keys not set. Using mock authentication.");
+                }
+            } catch (e) {
+                console.error("Firebase Initialization Error:", e);
+            }
+        }
+
+        // --- PRODUCT DATA MANAGEMENT ---
+        function loadProducts() {
+            const stored = localStorage.getItem('clipcart_products'); // New key for fresh start
+            if (stored) {
+                products = JSON.parse(stored);
+            } else {
+                // Empty start - User requested to remove fake products
+                products = []; 
+                localStorage.setItem('clipcart_products', JSON.stringify(products));
+            }
+        }
+
+        // --- ROUTING ---
+        function setupRouter() {
+            window.addEventListener('hashchange', handleRoute);
+            handleRoute(); // Initial load
+        }
+
+        function navigateTo(page) {
+            window.location.hash = page;
+        }
+
+        function handleRoute() {
+            const hash = window.location.hash.slice(1) || 'home';
+            const app = document.getElementById('app');
+            window.scrollTo(0, 0);
+            
+            // Close mobile menu if open
+            if (!document.getElementById('mobile-menu').classList.contains('hidden')) {
+                toggleMobileMenu();
+            }
+
+            // Parse params (e.g. product?id=1)
+            const [path, query] = hash.split('?');
+            const params = new URLSearchParams(query);
+
+            // Routing Logic
+            switch (path) {
+                case 'home': renderHome(app); break;
+                case 'about': renderAbout(app); break;
+                case 'products': renderProducts(app, params); break;
+                case 'login': renderLogin(app); break;
+                case 'admin': renderAdmin(app); break;
+                default: render404(app);
+            }
+        }
+
+        // --- MOBILE MENU TOGGLE ---
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('mobile-menu-icon');
+            
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-xmark');
+            } else {
+                menu.classList.add('hidden');
+                icon.classList.remove('fa-xmark');
+                icon.classList.add('fa-bars');
+            }
+        }
+
+        // --- VIEW RENDERERS ---
+
+        function renderHome(container) {
+            const trending = products.slice(0, 4);
+            
+            container.innerHTML = `
+                <section class="relative h-[450px] sm:h-[600px] flex items-center justify-center overflow-hidden">
+                    <div class="absolute inset-0 z-0">
+                        <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1920&q=80" class="w-full h-full object-cover brightness-[0.6]" alt="Hero Background">
+                    </div>
+                    <div class="relative z-10 text-center text-white px-4 fade-in">
+                        <h1 class="text-4xl md:text-7xl font-bold mb-4 md:mb-6 tracking-tight">Welcome to <span class="text-blue-400">Clipcart</span></h1>
+                        <p class="text-base md:text-2xl mb-6 md:mb-8 text-slate-200 max-w-2xl mx-auto">Everything you need, from Home & Kitchen to the latest Tech.</p>
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                            <button onclick="navigateTo('products')" class="px-6 py-3 md:px-8 md:py-4 bg-primary hover:bg-slate-800 text-white rounded-full font-semibold text-base md:text-lg transition-all transform hover:scale-105 shadow-lg">Start Shopping</button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="py-12 md:py-16 bg-white">
+                    <div class="max-w-7xl mx-auto px-4">
+                        <h2 class="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12">Shop by Category</h2>
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                            ${CATEGORIES.map(cat => {
+                                const imgs = {
+                                    'Home & Kitchen': 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=600&q=80',
+                                    'Fashion': 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=600&q=80',
+                                    'Electronics': 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=600&q=80',
+                                    'Fitness': 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=600&q=80',
+                                    'Gaming': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80'
+                                };
+                                return `
+                                <div onclick="navigateTo('products?cat=${encodeURIComponent(cat)}')" class="cursor-pointer group relative rounded-xl sm:rounded-2xl overflow-hidden aspect-[3/4] shadow-md hover:shadow-xl transition-all duration-300">
+                                    <img src="${imgs[cat]}" alt="${cat}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
+                                    <div class="absolute inset-0 flex flex-col justify-end p-4 sm:p-6 text-center">
+                                        <h3 class="text-white font-bold text-base md:text-xl mb-1 transform translate-y-0 group-hover:-translate-y-2 transition-transform duration-300 drop-shadow-md">${cat}</h3>
+                                        <span class="text-white/90 text-xs uppercase tracking-widest opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 font-semibold">Shop Now</span>
+                                    </div>
+                                </div>
+                            `}).join('')}
+                        </div>
+                    </div>
+                </section>
+
+                <section class="py-6 md:py-8 bg-white fade-in">
+                    <div class="max-w-7xl mx-auto px-4">
+                        <div class="w-full h-32 md:h-56 rounded-xl sm:rounded-2xl overflow-hidden relative group cursor-pointer shadow-sm border border-slate-100">
+                            <img src="https://images.unsplash.com/photo-1557821552-17105176677c?auto=format&fit=crop&w=1200&q=80" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 brightness-75 group-hover:brightness-90" alt="Ad">
+                            <div class="absolute inset-0 flex flex-col justify-center px-4 md:px-12 text-white">
+                                <span class="bg-white/20 backdrop-blur-md text-xs border border-white/30 px-2 py-0.5 rounded w-fit mb-1 md:mb-2">Sponsored</span>
+                                <h3 class="text-xl md:text-4xl font-bold mb-1 md:mb-2">Upgrade Your Setup</h3>
+                                <p class="text-xs md:text-lg opacity-90 max-w-sm">Exclusive deals on the latest tech and gaming accessories.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="py-16 md:py-20 bg-slate-50">
+                    <div class="max-w-7xl mx-auto px-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+                            <div class="p-6 md:p-8 rounded-xl sm:rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow text-center">
+                                <div class="w-12 h-12 md:w-16 md:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
+                                    <i class="fa-solid fa-truck-fast text-primary text-xl md:text-2xl"></i>
+                                </div>
+                                <h3 class="text-lg md:text-xl font-bold mb-2 md:mb-3">Fast Delivery</h3>
+                                <p class="text-sm text-slate-500">Get your essentials delivered to your doorstep in record time.</p>
+                            </div>
+                            <div class="p-6 md:p-8 rounded-xl sm:rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow text-center">
+                                <div class="w-12 h-12 md:w-16 md:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
+                                    <i class="fa-solid fa-check-double text-primary text-xl md:text-2xl"></i>
+                                </div>
+                                <h3 class="text-lg md:text-xl font-bold mb-2 md:mb-3">Quality Assured</h3>
+                                <p class="text-sm text-slate-500">We strictly control quality on all Fashion and Tech items.</p>
+                            </div>
+                            <div class="p-6 md:p-8 rounded-xl sm:rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow text-center">
+                                <div class="w-12 h-12 md:w-16 md:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
+                                    <i class="fa-solid fa-headset text-primary text-xl md:text-2xl"></i>
+                                </div>
+                                <h3 class="text-lg md:text-xl font-bold mb-2 md:mb-3">Customer Care</h3>
+                                <p class="text-sm text-slate-500">Support available for all your shopping queries.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="py-6 md:py-8 bg-slate-50 fade-in">
+                    <div class="max-w-7xl mx-auto px-4">
+                        <div class="bg-[#1a1a1a] rounded-xl sm:rounded-2xl p-6 md:p-10 relative overflow-hidden flex flex-col md:flex-row items-center justify-between shadow-lg">
+                            <div class="relative z-10 text-center md:text-left mb-4 md:mb-0">
+                                <span class="text-orange-500 font-bold tracking-wider text-xs uppercase border border-orange-500 px-2 py-0.5 rounded">Limited Time Ad</span>
+                                <h3 class="text-2xl md:text-4xl font-bold text-white mt-3 mb-2">Fashion Summer Collection</h3>
+                                <p class="text-gray-400 mb-4 md:mb-6 text-sm">Discover the hottest trends for this season.</p>
+                                <button class="px-6 py-2 bg-white text-black rounded-full font-bold hover:bg-gray-200 transition-colors text-sm">Explore Now</button>
+                            </div>
+                            <div class="relative z-10 w-full md:w-1/2 h-32 md:h-full mt-4 md:mt-0">
+                                <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover rounded-xl opacity-80" alt="Ad">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="py-16 md:py-20 bg-white">
+                    <div class="max-w-7xl mx-auto px-4">
+                        <div class="flex justify-between items-end mb-8 md:mb-12">
+                            <div>
+                                <h2 class="text-2xl md:text-3xl font-bold text-slate-900">New Arrivals</h2>
+                                <p class="text-slate-500 mt-1 md:mt-2 text-sm">Check out what's new in store</p>
+                            </div>
+                            <a href="#products" class="text-primary font-semibold hover:underline text-sm md:text-base">View All <i class="fa-solid fa-arrow-right ml-1"></i></a>
+                        </div>
+                        
+                        ${trending.length > 0 ? 
+                            `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                ${trending.map(p => createProductCard(p)).join('')}
+                            </div>` : 
+                            `<div class="text-center py-12 bg-slate-50 rounded-xl border border-slate-100 border-dashed">
+                                <p class="text-slate-500 mb-2">No products available yet.</p>
+                                <p class="text-sm text-slate-400">Check back soon or login as Admin to add inventory.</p>
+                            </div>`
+                        }
+                    </div>
+                </section>
+
+                <section class="py-10 md:py-12 bg-white border-t border-slate-50 fade-in">
+                    <div class="max-w-7xl mx-auto px-4">
+                        <div class="relative rounded-xl sm:rounded-3xl overflow-hidden h-56 md:h-80 shadow-2xl group cursor-pointer">
+                            <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1600&q=80" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 brightness-50 group-hover:brightness-40" alt="Fitness Ad">
+                            <div class="absolute inset-0 flex flex-col items-center justify-center text-center text-white px-4">
+                                <div class="bg-orange-500 text-xs font-bold px-3 py-1 rounded-full mb-3 md:mb-4 uppercase tracking-widest">Clearance Sale</div>
+                                <h2 class="text-2xl md:text-5xl font-bold mb-3 md:mb-4">Get Fit for Less</h2>
+                                <p class="text-sm md:text-xl text-slate-200 mb-6 md:mb-8 max-w-2xl">Up to 50% off on Home Gym Equipment & Fitness Wear. Limited time offer.</p>
+                                <button onclick="navigateTo('products?cat=Fitness')" class="bg-white text-slate-900 px-6 py-3 rounded-full font-bold hover:bg-orange-500 hover:text-white transition-all transform hover:scale-105 text-sm">
+                                    Shop Fitness Deals
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            `;
+        }
+
+        function renderAbout(container) {
+            container.innerHTML = `
+                <div class="fade-in">
+                    <section class="relative py-20 md:py-24 bg-slate-900 text-white overflow-hidden">
+                        <div class="absolute inset-0 opacity-20">
+                            <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1920&q=80" class="w-full h-full object-cover" alt="About Hero">
+                        </div>
+                        <div class="relative max-w-7xl mx-auto px-4 text-center">
+                            <h1 class="text-4xl md:text-7xl font-bold mb-4 md:mb-6 tracking-tight">We Are <span class="text-blue-500">Clipcart</span></h1>
+                            <p class="text-base md:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
+                                Redefining the online shopping experience. From your kitchen to your gaming setup, we bring quality to your doorstep.
+                            </p>
+                        </div>
+                    </section>
+
+                    <section class="py-8 md:py-12 bg-white border-b border-slate-100 shadow-sm relative z-20 -mt-6 md:-mt-8 mx-4 md:mx-auto max-w-6xl rounded-xl">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 text-center">
+                            <div class="p-2 md:p-4">
+                                <div class="text-3xl md:text-4xl font-bold text-primary mb-1 md:mb-2">5+</div>
+                                <div class="text-[10px] md:text-sm text-slate-500 uppercase tracking-wider font-semibold">Years of Service</div>
+                            </div>
+                            <div class="p-2 md:p-4">
+                                <div class="text-3xl md:text-4xl font-bold text-primary mb-1 md:mb-2">50k+</div>
+                                <div class="text-[10px] md:text-sm text-slate-500 uppercase tracking-wider font-semibold">Happy Customers</div>
+                            </div>
+                            <div class="p-2 md:p-4">
+                                <div class="text-3xl md:text-4xl font-bold text-primary mb-1 md:mb-2">100%</div>
+                                <div class="text-[10px] md:text-sm text-slate-500 uppercase tracking-wider font-semibold">Secure Payment</div>
+                            </div>
+                            <div class="p-2 md:p-4">
+                                <div class="text-3xl md:text-4xl font-bold text-primary mb-1 md:mb-2">24/7</div>
+                                <div class="text-[10px] md:text-sm text-slate-500 uppercase tracking-wider font-semibold">Expert Support</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="py-16 md:py-24 bg-slate-50">
+                        <div class="max-w-7xl mx-auto px-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
+                                <div class="relative order-2 md:order-1">
+                                    <div class="absolute -top-4 -left-4 w-24 h-24 bg-blue-500/20 rounded-full blur-2xl hidden md:block"></div>
+                                    <img src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=800&q=80" class="relative rounded-2xl shadow-2xl transform hover:scale-[1.02] transition-transform duration-500" alt="Our Team">
+                                    <div class="absolute -bottom-6 -right-6 bg-white p-4 md:p-6 rounded-xl shadow-xl hidden lg:block border border-slate-100">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="bg-blue-100 p-2 rounded-full">
+                                                <i class="fa-solid fa-quote-left text-blue-600"></i>
+                                            </div>
+                                            <p class="text-sm font-medium text-slate-700 italic">"Quality delivered, trust earned."</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="order-1 md:order-2">
+                                    <h2 class="text-blue-600 font-semibold tracking-wide uppercase text-sm mb-2">Our Story</h2>
+                                    <h3 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4 md:mb-6">From a Simple Idea to a Global Store</h3>
+                                    <p class="text-slate-600 mb-4 md:mb-6 leading-relaxed text-base md:text-lg">
+                                        Clipcart started with a vision to simplify the way people shop for their daily needs. Whether it's upgrading your kitchen, finding the perfect outfit, or getting the latest gaming gear, we wanted to create a platform that does it all.
+                                    </p>
+                                    <p class="text-slate-600 mb-6 md:mb-8 leading-relaxed text-base md:text-lg">
+                                        We carefully curate our collections in Home & Kitchen, Fashion, Electronics, Fitness, and Gaming to ensure you get the best value for your money.
+                                    </p>
+                                    <button onclick="navigateTo('products')" class="px-6 py-3 bg-primary text-white rounded-full font-semibold hover:bg-slate-800 transition-colors shadow-lg text-sm">
+                                        Browse Collection
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="py-16 md:py-20 bg-white">
+                        <div class="max-w-7xl mx-auto px-4">
+                            <div class="text-center max-w-3xl mx-auto mb-12 md:mb-16">
+                                <h2 class="text-3xl font-bold text-slate-900 mb-4">Our Core Values</h2>
+                                <p class="text-slate-500 text-base md:text-lg">The principles that drive every decision we make at Clipcart.</p>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+                                <div class="p-6 md:p-8 bg-slate-50 rounded-2xl hover:shadow-xl transition-all duration-300 border border-slate-100 text-center group">
+                                    <div class="w-14 h-14 md:w-16 md:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:bg-primary group-hover:text-white transition-colors">
+                                        <i class="fa-regular fa-lightbulb text-xl md:text-2xl"></i>
+                                    </div>
+                                    <h3 class="text-lg md:text-xl font-bold mb-3">Innovation First</h3>
+                                    <p class="text-sm text-slate-500">We constantly update our store with the latest trends and technology.</p>
+                                </div>
+                                <div class="p-6 md:p-8 bg-slate-50 rounded-2xl hover:shadow-xl transition-all duration-300 border border-slate-100 text-center group">
+                                    <div class="w-14 h-14 md:w-16 md:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:bg-primary group-hover:text-white transition-colors">
+                                        <i class="fa-solid fa-heart text-xl md:text-2xl"></i>
+                                    </div>
+                                    <h3 class="text-lg md:text-xl font-bold mb-3">Customer Obsession</h3>
+                                    <p class="text-sm text-slate-500">Your satisfaction is our metric for success. We go above and beyond to ensure you're happy.</p>
+                                </div>
+                                <div class="p-6 md:p-8 bg-slate-50 rounded-2xl hover:shadow-xl transition-all duration-300 border border-slate-100 text-center group">
+                                    <div class="w-14 h-14 md:w-16 md:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:bg-primary group-hover:text-white transition-colors">
+                                        <i class="fa-solid fa-leaf text-xl md:text-2xl"></i>
+                                    </div>
+                                    <h3 class="text-lg md:text-xl font-bold mb-3">Sustainable Choices</h3>
+                                    <p class="text-sm text-slate-500">We prioritize eco-friendly products, especially in our Home & Kitchen categories.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="py-16 md:py-20 bg-slate-900 text-white">
+                        <div class="max-w-7xl mx-auto px-4">
+                            <div class="text-center mb-12 md:mb-16">
+                                <h2 class="text-3xl font-bold mb-4">Meet the Leadership</h2>
+                                <p class="text-slate-400">The visionaries behind Clipcart.</p>
+                            </div>
+                            <div class="flex justify-center">
+                                <div class="text-center group max-w-xs">
+                                    <div class="relative w-36 h-36 sm:w-48 sm:h-48 mx-auto mb-6 rounded-full overflow-hidden border-4 border-slate-700 group-hover:border-primary transition-colors shadow-2xl">
+                                        <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover" alt="CEO">
+                                    </div>
+                                    <h3 class="text-xl md:text-2xl font-bold">Saim Kakar</h3>
+                                    <p class="text-blue-400 text-sm mb-3 md:mb-4 uppercase tracking-wide font-semibold">Founder & CEO</p>
+                                    <p class="text-slate-400 text-sm mb-4">Passionate about connecting people with products that improve their lives.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="py-16 md:py-20 bg-white">
+                        <div class="max-w-5xl mx-auto px-4">
+                            <div class="bg-gradient-to-r from-blue-600 to-blue-900 rounded-2xl md:rounded-3xl p-8 md:p-16 text-center text-white shadow-2xl relative overflow-hidden">
+                                <div class="absolute top-0 left-0 w-full h-full opacity-10" style="background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><text y=\'50%\' x=\'50%\' font-size=\'10\' fill=\'white\' text-anchor=\'middle\' dominant-baseline=\'middle\'>CLIPCART</text></svg>'); background-size: 50px; background-repeat: repeat;"></div>
+                                <h2 class="text-3xl md:text-4xl font-bold mb-4 relative z-10">Ready to find your next favorite item?</h2>
+                                <p class="text-base md:text-lg text-blue-100 mb-6 md:mb-8 relative z-10">Start exploring our vast collection of quality products today.</p>
+                                <button onclick="navigateTo('products')" class="bg-white text-blue-600 px-8 py-3 rounded-full font-bold hover:bg-gray-100 transition-colors shadow-lg relative z-10 text-sm">
+                                    Shop Now
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                </div>
+            `;
+        }
+
+        function renderProducts(container, params) {
+            // Get category filter from URL params
+            const categoryFilter = params.get('cat') || '';
+            const searchQuery = params.get('search') || '';
+            
+            // 1. Filtering Logic
+            let filteredProducts = products;
+            
+            if (categoryFilter) {
+                filteredProducts = filteredProducts.filter(p => p.category === categoryFilter);
+            }
+
+            if (searchQuery) {
+                const term = searchQuery.toLowerCase();
+                filteredProducts = filteredProducts.filter(p => 
+                    p.title.toLowerCase().includes(term) || 
+                    p.description.toLowerCase().includes(term) || 
+                    p.category.toLowerCase().includes(term)
+                );
+            }
+
+            // 2. Main HTML Structure
+            container.innerHTML = `
+                <div class="max-w-7xl mx-auto py-8 md:py-12 px-4 fade-in">
+                    <div class="text-center max-w-3xl mx-auto mb-8 md:mb-12">
+                        <h1 class="text-3xl md:text-5xl font-bold text-slate-900 mb-2 md:mb-4">${categoryFilter ? categoryFilter : searchQuery ? 'Search Results' : 'Shop All Products'}</h1>
+                        <p class="text-base md:text-lg text-slate-600">${categoryFilter ? `Browse our curated collection in ${categoryFilter}` : searchQuery ? `Showing ${filteredProducts.length} results for "${searchQuery}"` : 'Discover our full range of products in all categories.'}</p>
+                    </div>
+
+                    <div class="lg:hidden flex space-x-3 pb-4 mb-6 md:mb-8 overflow-x-auto snap-x snap-mandatory scrollbar-hide">
+                        <a href="#products" class="snap-start flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium border transition-colors ${!categoryFilter ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-200'}">All Categories</a>
+                        ${CATEGORIES.map(cat => `
+                            <a href="#products?cat=${encodeURIComponent(cat)}" class="snap-start flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium border transition-colors ${categoryFilter === cat ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-200'}">${cat}</a>
+                        `).join('')}
+                    </div>
+
+                    <div class="flex flex-col lg:flex-row gap-6 md:gap-8">
+                        
+                        <aside class="hidden lg:block w-64 flex-shrink-0">
+                            <div class="sticky top-24">
+                                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                                    <h3 class="font-bold text-lg mb-4">Categories</h3>
+                                    <ul class="space-y-2">
+                                        <li><a href="#products" class="block px-3 py-2 rounded-lg ${!categoryFilter ? 'bg-blue-50 text-primary font-medium' : 'text-slate-600 hover:bg-slate-50'}">All Categories</a></li>
+                                        ${CATEGORIES.map(cat => `
+                                            <li><a href="#products?cat=${encodeURIComponent(cat)}" class="block px-3 py-2 rounded-lg ${categoryFilter === cat ? 'bg-blue-50 text-primary font-medium' : 'text-slate-600 hover:bg-slate-50'}">${cat}</a></li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                                <div class="mt-6 rounded-xl overflow-hidden relative h-80 group cursor-pointer shadow-md border border-slate-100">
+                                    <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="Ad">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent flex flex-col justify-end p-5 text-white">
+                                        <span class="absolute top-3 right-3 bg-black/50 backdrop-blur text-[10px] px-1.5 py-0.5 rounded text-white/70 border border-white/20">Ad</span>
+                                        <p class="text-xs uppercase tracking-widest text-orange-400 font-bold mb-1">Just Arrived</p>
+                                        <h4 class="text-xl font-bold leading-tight">Nike Air Max Series</h4>
+                                        <button class="mt-3 px-4 py-2 bg-orange-500 text-white text-xs font-bold rounded-lg w-full hover:bg-orange-600 transition-colors">Shop Now</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </aside>
+
+                        <section class="flex-grow">
+                            ${filteredProducts.length > 0 ? 
+                                `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    ${filteredProducts.map(p => createProductCard(p)).join('')}
+                                </div>` :
+                                `<div class="text-center py-12 md:py-20 bg-white rounded-xl shadow-md border border-slate-100">
+                                    <i class="fa-solid fa-box-open text-5xl text-slate-300 mb-4"></i>
+                                    <p class="text-xl font-semibold text-slate-600 mb-2">No Products Found</p>
+                                    <p class="text-slate-500">Try a different category or search term.</p>
+                                </div>`
+                            }
+                        </section>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createProductCard(p) {
+            // Helper function to create the product card HTML (used by renderHome and renderProducts)
+            let imageSection = '';
+            // Ensure product has an image or images array, and use the first one as cover
+            if (p.image || (p.images && p.images.length > 0)) {
+                // If it has images array, use the first one, otherwise use the single image field.
+                const src = p.images && p.images.length > 0 ? p.images[0] : p.image;
+                imageSection = `
+                    <div class="relative aspect-square overflow-hidden bg-white p-4 flex items-center justify-center" onclick="trackProductClick(${p.id}, '${p.category}')">
+                        <img src="${src}" alt="${p.title}" class="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-bold text-slate-700 shadow-sm border border-slate-100">
+                            ${p.category}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            return `
+                <div class="group bg-white rounded-xl md:rounded-2xl border border-slate-100 overflow-hidden hover:shadow-2xl hover:shadow-slate-200 transition-all duration-300 flex flex-col h-full">
+                    ${imageSection}
+                    <div class="p-4 md:p-5 flex flex-col flex-grow bg-slate-50/30 border-t border-slate-50">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-bold text-slate-900 line-clamp-1 group-hover:text-primary transition-colors text-base md:text-lg" title="${p.title}">${p.title}</h3>
+                        </div>
+                        <p class="text-xs md:text-sm text-slate-500 line-clamp-2 mb-3 md:mb-4 flex-grow">${p.description}</p>
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex flex-col">
+                                <div class="flex items-baseline space-x-2">
+                                    <span class="text-xl md:text-2xl font-bold text-slate-900">$${p.price.toFixed(2)}</span>
+                                    ${p.listPrice && p.listPrice > p.price ? `<span class="text-xs md:text-sm text-slate-400 line-through">$${p.listPrice.toFixed(2)}</span>` : ''}
+                                </div>
+                                ${p.listPrice && p.listPrice > p.price ? `<span class="text-[10px] text-red-500 font-bold">Save ${Math.round((1 - p.price/p.listPrice)*100)}%</span>` : ''}
+                            </div>
+                            <div class="flex items-center text-yellow-400 text-xs bg-yellow-50 px-2 py-1 rounded-full h-fit">
+                                <i class="fa-solid fa-star"></i>
+                                <span class="text-slate-700 font-bold ml-1">${p.rating}</span>
+                            </div>
+                        </div>
+                        <a href="${p.amazonLink}" target="_blank" onclick="trackProductClick(${p.id}, '${p.category}')" class="w-full bg-[#FF9900] hover:bg-[#e88b00] text-white py-2 md:py-3 rounded-xl font-bold text-sm transition-transform hover:scale-[1.02] shadow-md hover:shadow-lg text-center">
+                            Buy on Amazon
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createProductDetail(p) {
+            // Helper function for product detail (not currently used by router but kept)
+            let imageSection = '';
+            if (p.images && p.images.length > 0) {
+                imageSection = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${p.images.map(src => `
+                            <img src="${src}" alt="${p.title}" class="w-full h-full object-cover rounded-xl shadow-lg border border-slate-100">
+                        `).join('')}
+                    </div>
+                `;
+            } else if (p.image) {
+                imageSection = `<img src="${p.image}" alt="${p.title}" class="w-full h-96 object-contain rounded-xl shadow-lg border border-slate-100 bg-white p-6">`;
+            }
+            
+            return `
+                <div class="max-w-7xl mx-auto py-12 md:py-16 px-4 fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+                        <div class="lg:sticky lg:top-24">
+                            ${imageSection}
+                        </div>
+                        <div>
+                            <span class="bg-blue-50 text-primary text-sm font-semibold px-3 py-1 rounded-full mb-3 inline-block">${p.category}</span>
+                            <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-3 md:mb-4">${p.title}</h1>
+                            <div class="flex items-center space-x-2 mb-4 md:mb-6 text-yellow-500">
+                                ${'<i class="fa-solid fa-star"></i>'.repeat(Math.floor(p.rating))}
+                                <span class="text-slate-600 ml-2 text-sm">(${p.reviews} reviews)</span>
+                            </div>
+
+                            <div class="flex items-baseline space-x-3 mb-6">
+                                <span class="text-4xl md:text-5xl font-extrabold text-primary">$${p.price.toFixed(2)}</span>
+                                ${p.listPrice && p.listPrice > p.price ? `<span class="text-lg md:text-xl text-slate-400 line-through">$${p.listPrice.toFixed(2)}</span>` : ''}
+                                ${p.listPrice && p.listPrice > p.price ? `<span class="text-base md:text-lg text-red-600 font-bold">Save ${Math.round((1 - p.price/p.listPrice)*100)}%</span>` : ''}
+                            </div>
+
+                            <p class="text-slate-600 mb-6 md:mb-8 leading-relaxed text-sm md:text-base">${p.description}</p>
+                            
+                            <a href="${p.amazonLink}" target="_blank" class="w-full bg-[#FF9900] hover:bg-[#e88b00] text-white py-3 md:py-4 px-8 md:px-10 rounded-xl font-bold text-base md:text-lg transition-transform hover:scale-[1.01] shadow-xl block text-center">
+                                <i class="fa-brands fa-amazon mr-2"></i> Buy on Amazon
+                            </a>
+
+                            <div class="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-slate-100">
+                                <h3 class="text-xl md:text-2xl font-bold mb-4">Product Overview</h3>
+                                <ul class="space-y-3 text-slate-600 text-sm">
+                                    <li><i class="fa-solid fa-tag text-primary mr-3"></i> SKU: ${p.id}</li>
+                                    <li><i class="fa-solid fa-truck-fast text-primary mr-3"></i> Fast & Secure Shipping</li>
+                                    <li><i class="fa-solid fa-check-circle text-primary mr-3"></i> 100% Quality Guaranteed</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderLogin(container) {
+            if (localStorage.getItem('tv_user')) {
+                const user = JSON.parse(localStorage.getItem('tv_user'));
+                if (user.role === 'admin') {
+                    navigateTo('admin');
+                } else {
+                    navigateTo('home');
+                }
+                return;
+            }
+            const modeText = isFirebaseActive ? "Secured by Firebase" : "Demo Mode (Add Keys to Secure)";
+            container.innerHTML = `
+                <div class="min-h-screen flex items-center justify-center px-4 fade-in bg-black">
+                    <div class="max-w-md w-full bg-white rounded-xl shadow-2xl p-6 sm:p-10 border border-zinc-800 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-full h-1 bg-orange-500"></div>
+                        <div class="text-center mb-6 sm:mb-8">
+                            <img src="logo.png" alt="Clipcart" class="h-16 sm:h-20 mx-auto mb-4 sm:mb-6">
+                            <h2 class="text-2xl sm:text-3xl font-bold text-black mb-2 tracking-tight" id="auth-title">Login</h2>
+                            <p class="text-gray-500 text-sm" id="auth-desc">Sign in to your account</p>
+                            <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 bg-gray-100 text-gray-500 rounded-sm mt-4 inline-block font-bold">${modeText}</span>
+                        </div>
+
+                        <div id="login-error" class="hidden mb-4 bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-lg text-sm flex items-start animate-pulse">
+                            <i class="fa-solid fa-circle-exclamation mt-0.5 mr-2"></i>
+                            <span id="login-error-text"></span>
+                        </div>
+
+                        <form onsubmit="handleLogin(event)" class="space-y-4 sm:space-y-5">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-900 uppercase tracking-wide mb-2">Email Address</label>
+                                <input type="email" id="login-email" class="w-full rounded-md border-2 border-gray-200 p-3 text-gray-900 focus:border-orange-500 focus:ring-0 focus:outline-none transition-colors bg-gray-50" placeholder="name@example.com" required oninput="hideLoginError()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-900 uppercase tracking-wide mb-2">Password</label>
+                                <div class="relative">
+                                    <input type="password" id="login-password" class="w-full rounded-md border-2 border-gray-200 p-3 text-gray-900 focus:border-orange-500 focus:ring-0 focus:outline-none transition-colors bg-gray-50 pr-10" placeholder="Enter your password" required oninput="hideLoginError()">
+                                    <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
+                                        <i class="fa-solid fa-eye" id="password-toggle-icon"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="w-full bg-orange-500 text-white py-3 rounded-md font-bold text-lg hover:bg-orange-600 transition-colors shadow-lg flex items-center justify-center" id="login-btn">
+                                <span id="login-btn-text">Sign In</span>
+                                <i class="fa-solid fa-circle-notch animate-spin ml-2 hidden" id="login-spinner"></i>
+                            </button>
+                        </form>
+
+                        <div class="mt-4 sm:mt-6 text-center text-sm">
+                            <button onclick="toggleAuthMode()" class="text-orange-500 hover:text-orange-600 font-medium transition-colors" id="toggle-auth-mode">
+                                New here? Create an account
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        let isRegisterMode = false;
+        function toggleAuthMode() {
+            isRegisterMode = !isRegisterMode;
+            const title = document.getElementById('auth-title');
+            const desc = document.getElementById('auth-desc');
+            const btnText = document.getElementById('login-btn-text');
+            const toggleText = document.getElementById('toggle-auth-mode');
+
+            if (isRegisterMode) {
+                title.innerText = 'Create Account';
+                desc.innerText = 'Enter your details to register';
+                btnText.innerText = 'Register';
+                toggleText.innerText = 'Already have an account? Sign In';
+            } else {
+                title.innerText = 'Login';
+                desc.innerText = 'Sign in to your account';
+                btnText.innerText = 'Sign In';
+                toggleText.innerText = 'New here? Create an account';
+            }
+        }
+
+        function togglePassword() {
+            const input = document.getElementById('login-password');
+            const icon = document.getElementById('password-toggle-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        function hideLoginError() {
+            document.getElementById('login-error').classList.add('hidden');
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const btnText = document.getElementById('login-btn-text');
+            const spinner = document.getElementById('login-spinner');
+            const errorBox = document.getElementById('login-error');
+            const errorText = document.getElementById('login-error-text');
+
+            // Reset Error
+            errorBox.classList.add('hidden');
+            btnText.innerText = isRegisterMode ? 'Creating Account...' : 'Verifying...';
+            spinner.classList.remove('hidden');
+
+            const ADMIN_EMAIL = 'saimkakar2007@gmail.com';
+            const ADMIN_PASS = 'saim2008kakar';
+
+            function showError(msg) {
+                errorText.innerText = msg;
+                errorBox.classList.remove('hidden');
+                btnText.innerText = isRegisterMode ? 'Register' : 'Sign In';
+                spinner.classList.add('hidden');
+            }
+
+            if (isFirebaseActive) {
+                if (isRegisterMode) {
+                    auth.createUserWithEmailAndPassword(email, password)
+                        .then((userCredential) => {
+                            // Registration success
+                            console.log("User registered");
+                        })
+                        .catch((error) => {
+                            console.error(error);
+                            showError(error.message);
+                        });
+                } else {
+                    auth.signInWithEmailAndPassword(email, password)
+                        .then((userCredential) => {
+                            // Login success
+                            console.log("User logged in");
+                        })
+                        .catch((error) => {
+                            console.error(error);
+                            showError("Invalid Email or Password.");
+                        });
+                }
+            } else {
+                // MOCK LOGIC
+                setTimeout(() => {
+                    if (isRegisterMode) {
+                        // Mock Register
+                        const user = {
+                            name: 'New User',
+                            email: email,
+                            role: 'user'
+                        };
+                        if (email === ADMIN_EMAIL) user.role = 'admin';
+                        localStorage.setItem('tv_user', JSON.stringify(user));
+                        updateAuthUI();
+                        navigateTo(user.role === 'admin' ? 'admin' : 'home');
+                    } else {
+                        // Mock Login
+                        if (email === ADMIN_EMAIL) {
+                            if (password === ADMIN_PASS) {
+                                localStorage.setItem('tv_user', JSON.stringify({ name: 'Admin', email: ADMIN_EMAIL, role: 'admin' }));
+                                updateAuthUI();
+                                navigateTo('admin');
+                            } else {
+                                showError("Invalid Password for Admin.");
+                            }
+                        } else {
+                            showError("Access Denied. Only the specific admin can log in in demo mode.");
+                        }
+                    }
+                    spinner.classList.add('hidden');
+                }, 1000);
+            }
+        }
+
+        // --- AUTH UI MANAGEMENT ---
+        function handleLogout() {
+            if (isFirebaseActive && auth) {
+                auth.signOut().then(() => {
+                    // Sign-out successful.
+                    localStorage.removeItem('tv_user');
+                    updateAuthUI();
+                    navigateTo('home');
+                }).catch((error) => {
+                    // An error happened.
+                    console.error("Logout Error:", error);
+                });
+            } else {
+                // Mock logout
+                localStorage.removeItem('tv_user');
+                updateAuthUI();
+                navigateTo('home');
+            }
+        }
+
+        function updateAuthUI() {
+            const userString = localStorage.getItem('tv_user');
+            const authLinks = document.getElementById('auth-links');
+            const mobileAuth = document.getElementById('mobile-auth');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            if (userString) {
+                const user = JSON.parse(userString);
+                
+                // Desktop UI
+                let desktopHtml = `
+                    <div class="relative group">
+                        <button class="px-4 py-2 rounded-full bg-primary text-white text-sm font-medium hover:bg-slate-800 transition-colors shadow-md hover:shadow-lg flex items-center space-x-2">
+                            <i class="fa-solid fa-user-circle"></i>
+                            <span>${user.name}</span>
+                        </button>
+                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-xl py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 border border-slate-100">
+                            <div class="block px-4 py-2 text-sm text-slate-700 font-semibold border-b border-slate-100 mb-1">${user.role === 'admin' ? 'Admin Panel' : 'My Account'}</div>
+                            ${user.role === 'admin' ? '<a href="#admin" class="block px-4 py-2 text-sm text-primary hover:bg-slate-50">Admin Dashboard</a>' : ''}
+                            <button onclick="handleLogout()" class="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50">Logout</button>
+                        </div>
+                    </div>
+                `;
+
+                // Mobile UI
+                let mobileHtml = `<button onclick="handleLogout()" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-500 hover:bg-red-50">Logout</button>`;
+
+                if (user.role === 'admin') {
+                    desktopHtml += `<a href="#admin" class="ml-4 px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors shadow-md">Admin</a>`;
+                    mobileHtml = `<a href="#admin" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary hover:bg-slate-50">Admin Panel</a>` + mobileHtml;
+                }
+                
+                authLinks.innerHTML = desktopHtml;
+                mobileAuth.innerHTML = mobileHtml;
+            } else {
+                authLinks.innerHTML = `<a href="#login" class="px-4 py-2 rounded-full bg-primary text-white text-sm font-medium hover:bg-slate-800 transition-colors shadow-md">Login</a>`;
+                mobileAuth.innerHTML = `<a href="#login" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-primary hover:bg-slate-50">Login</a>`;
+            }
+        }
+
+        function renderAdmin(container) {
+            // STRICT SECURITY CHECK
+            const userString = localStorage.getItem('tv_user');
+            // 1. Check Local Storage Presence
+            if (!userString) {
+                navigateTo('login');
+                return;
+            }
+            const user = JSON.parse(userString);
+            
+            // 2. Check Firebase Auth State (if active) for extra security
+            if (isFirebaseActive && (!auth.currentUser || auth.currentUser.email !== 'saimkakar2007@gmail.com')) {
+                // Critical Mismatch - Log them out
+                handleLogout();
+                return;
+            }
+
+            // 3. Check Role
+            if (user.role !== 'admin') {
+                // Not an admin - Show Access Denied
+                container.innerHTML = `
+                    <div class="min-h-screen flex flex-col items-center justify-center text-center px-4 fade-in bg-slate-50">
+                        <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-6 animate-pulse">
+                            <i class="fa-solid fa-shield-halved text-red-600 text-4xl"></i>
+                        </div>
+                        <h1 class="text-3xl sm:text-4xl font-black text-slate-900 mb-2 tracking-tight">ACCESS DENIED</h1>
+                        <p class="text-slate-600 mb-8 max-w-md text-base md:text-lg">Your account does not have administrative privileges to view this restricted area.</p>
+                        <button onclick="navigateTo('home')" class="px-6 py-3 md:px-8 md:py-4 bg-slate-900 text-white rounded-lg font-bold hover:bg-slate-800 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5 text-sm md:text-base">
+                            Go to Homepage
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 4. Render Admin Dashboard (only for admin)
+            container.innerHTML = `
+                <div class="max-w-7xl mx-auto py-8 md:py-12 px-4 fade-in min-h-screen">
+                    <div class="flex justify-between items-center mb-6 md:mb-8 flex-col sm:flex-row">
+                        <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4 sm:mb-0">Admin Dashboard</h1>
+                        <button onclick="openProductModal()" class="w-full sm:w-auto bg-orange-500 text-white px-5 py-2 rounded-full font-semibold hover:bg-orange-600 transition-colors flex items-center justify-center text-sm md:text-base shadow-lg">
+                            <i class="fa-solid fa-plus mr-2"></i> Add New Product
+                        </button>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
+                        <div class="p-4 md:p-6 border-b border-slate-100">
+                            <h2 class="text-xl md:text-2xl font-bold text-slate-900">Product Inventory</h2>
+                            <p class="text-slate-500 text-xs md:text-sm mt-1">Manage all available products. Total products: ${products.length}</p>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-slate-100">
+                                <thead class="bg-slate-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Product</th>
+                                        <th class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Category</th>
+                                        <th class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Price ($)</th>
+                                        <th class="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-slate-100">
+                                    ${products.map(p => `
+                                        <tr class="hover:bg-slate-50 transition-colors">
+                                            <td class="p-4 flex items-center">
+                                                <img src="${p.image}" class="w-12 h-12 md:w-16 md:h-16 object-cover rounded-lg border border-slate-200 mr-3 md:mr-4" alt="${p.title}">
+                                                <div>
+                                                    <div class="text-sm font-medium text-slate-900 line-clamp-1">${p.title}</div>
+                                                    <div class="text-xs text-slate-500">${p.id}</div>
+                                                    <span class="text-[10px] text-slate-400 mt-0.5 inline-block">${(p.images && p.images.length) || 1} image(s)</span>
+                                                </div>
+                                            </td>
+                                            <td class="p-4 text-sm">${p.category}</td>
+                                            <td class="p-4 text-sm">$${p.price.toFixed(2)}</td>
+                                            <td class="p-4 text-right space-x-2 text-sm">
+                                                <button onclick="editProduct(${p.id})" class="text-blue-600 hover:text-blue-800 p-1"><i class="fa-solid fa-pen"></i></button>
+                                                <button onclick="deleteProduct(${p.id})" class="text-red-500 hover:text-red-700 p-1"><i class="fa-solid fa-trash"></i></button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="admin-modal" class="fixed inset-0 bg-slate-900/50 z-50 hidden flex items-center justify-center backdrop-blur-sm">
+                    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4">
+                        <div class="p-4 md:p-6 border-b border-slate-100 flex justify-between items-center">
+                            <h3 id="modal-title" class="text-lg md:text-xl font-bold">Add Product</h3>
+                            <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+                        </div>
+                        <form id="product-form" onsubmit="saveProduct(event)" class="p-4 md:p-6 space-y-4">
+                            <input type="hidden" id="p-id">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Title</label>
+                                <input type="text" id="p-title" class="w-full rounded-lg border border-slate-300 p-2" required>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Price ($)</label>
+                                    <input type="number" id="p-price" step="0.01" class="w-full rounded-lg border border-slate-300 p-2" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">List Price ($)</label>
+                                    <input type="number" id="p-list-price" step="0.01" class="w-full rounded-lg border border-slate-300 p-2" placeholder="Optional">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Category</label>
+                                    <select id="p-category" class="w-full rounded-lg border border-slate-300 p-2 bg-white" required>
+                                        <option value="">Select Category</option>
+                                        ${CATEGORIES.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Amazon Link (Full URL)</label>
+                                <input type="url" id="p-amazon" class="w-full rounded-lg border border-slate-300 p-2" placeholder="https://amazon.com/dp/..." required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Description</label>
+                                <textarea id="p-desc" rows="3" class="w-full rounded-lg border border-slate-300 p-2" required></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Product Images (First image is cover)</label>
+                                <input type="file" id="p-images" multiple accept="image/*" onchange="previewImages(event)" class="w-full rounded-lg border border-slate-300 p-2 file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-600 hover:file:bg-orange-100">
+                                <div id="image-preview-container" class="mt-3 flex space-x-2 flex-wrap">
+                                    </div>
+                                <p class="text-xs text-slate-500 mt-2">Note: Images are stored locally in the browser (max 5MB).</p>
+                            </div>
+
+                            <div class="flex justify-end pt-4 border-t border-slate-100">
+                                <button type="submit" id="save-btn" class="bg-primary text-white px-6 py-2 rounded-full font-semibold hover:bg-slate-800 transition-colors text-sm">
+                                    Save Product
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            // Re-render the admin view after DOM is updated to ensure table population.
+            setTimeout(() => {
+                const tbody = container.querySelector('tbody');
+                if (tbody) {
+                    tbody.innerHTML = products.map(p => `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-4 flex items-center">
+                                <img src="${p.image}" class="w-12 h-12 md:w-16 md:h-16 object-cover rounded-lg border border-slate-200 mr-3 md:mr-4" alt="${p.title}">
+                                <div>
+                                    <div class="text-sm font-medium text-slate-900 line-clamp-1">${p.title}</div>
+                                    <div class="text-xs text-slate-500">${p.id}</div>
+                                    <span class="text-[10px] text-slate-400 mt-0.5 inline-block">${(p.images && p.images.length) || 1} image(s)</span>
+                                </div>
+                            </td>
+                            <td class="p-4 text-sm">${p.category}</td>
+                            <td class="p-4 text-sm">$${p.price.toFixed(2)}</td>
+                            <td class="p-4 text-right space-x-2 text-sm">
+                                <button onclick="editProduct(${p.id})" class="text-blue-600 hover:text-blue-800 p-1"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="deleteProduct(${p.id})" class="text-red-500 hover:text-red-700 p-1"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            }, 0);
+        }
+
+        let currentProductImages = []; // Temporary storage for images when modal is open
+
+        function openProductModal(product = null) {
+            const modal = document.getElementById('admin-modal');
+            const title = document.getElementById('modal-title');
+            const form = document.getElementById('product-form');
+            const previewContainer = document.getElementById('image-preview-container');
+            
+            modal.classList.remove('hidden');
+            previewContainer.innerHTML = ''; // Clear preview
+
+            if (product) {
+                title.innerText = 'Edit Product';
+                document.getElementById('p-id').value = product.id;
+                document.getElementById('p-title').value = product.title;
+                document.getElementById('p-price').value = product.price;
+                document.getElementById('p-list-price').value = product.listPrice || '';
+                document.getElementById('p-category').value = product.category;
+                document.getElementById('p-desc').value = product.description;
+                document.getElementById('p-amazon').value = product.amazonLink || '';
+
+                // Load existing images
+                currentProductImages = product.images || [product.image];
+                currentProductImages.forEach(src => {
+                    const img = document.createElement('img');
+                    img.src = src;
+                    img.className = 'w-16 h-16 object-cover rounded border border-slate-200';
+                    previewContainer.appendChild(img);
+                });
+
+            } else {
+                title.innerText = 'Add Product';
+                form.reset();
+                document.getElementById('p-id').value = '';
+                document.getElementById('p-list-price').value = '';
+                document.getElementById('p-amazon').value = '';
+                currentProductImages = [];
+            }
+        }
+
+        function previewImages(event) {
+            const files = event.target.files;
+            const previewContainer = document.getElementById('image-preview-container');
+            
+            // Clear only the *new* file preview for this demonstration.
+            // Note: In a real app we'd clear everything and re-display currentProductImages + new previews.
+            // For simplicity here, we clear the whole container.
+            previewContainer.innerHTML = ''; 
+            
+            // Visual preview only
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'w-16 h-16 object-cover rounded border border-slate-200 opacity-75';
+                    previewContainer.appendChild(img);
+                }
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('admin-modal').classList.add('hidden');
+        }
+
+        async function saveProduct(e) {
+            e.preventDefault();
+            const saveBtn = document.getElementById('save-btn');
+            const originalBtnText = saveBtn.innerText;
+            saveBtn.innerText = 'Saving...';
+            saveBtn.disabled = true;
+
+            try {
+                const id = document.getElementById('p-id').value;
+                const imageFiles = document.getElementById('p-images').files;
+                const listPriceVal = parseFloat(document.getElementById('p-list-price').value);
+
+                let finalImages = [...currentProductImages];
+
+                // 1. Process newly uploaded image files (convert to Base64 for local storage)
+                if (imageFiles.length > 0) {
+                    finalImages = await Promise.all(Array.from(imageFiles).map(file => {
+                        return new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = (event) => resolve(event.target.result);
+                            reader.onerror = (error) => reject(error);
+                            reader.readAsDataURL(file);
+                        });
+                    }));
+                } else if (id && currentProductImages.length > 0) {
+                    // If editing, no new files uploaded, and existing images are already set in finalImages
+                } else {
+                    // If adding new product with no images
+                    finalImages = ["https://via.placeholder.com/300?text=No+Image"];
+                }
+
+                // 2. Create or Update Product Object
+                const newProduct = {
+                    id: id ? parseInt(id) : Date.now(),
+                    title: document.getElementById('p-title').value,
+                    price: parseFloat(document.getElementById('p-price').value),
+                    listPrice: isNaN(listPriceVal) ? null : listPriceVal,
+                    category: document.getElementById('p-category').value,
+                    description: document.getElementById('p-desc').value,
+                    image: finalImages[0], // First image is cover
+                    images: finalImages,
+                    amazonLink: document.getElementById('p-amazon').value,
+                    rating: 5.0,
+                    reviews: 0
+                };
+
+                if (id) {
+                    const index = products.findIndex(p => p.id == id);
+                    products[index] = { ...products[index], ...newProduct };
+                } else {
+                    products.unshift(newProduct);
+                }
+
+                // Try catch block for localStorage limit
+                try {
+                    localStorage.setItem('clipcart_products', JSON.stringify(products));
+                    closeModal();
+                    renderAdmin(document.getElementById('app'));
+                    alert('Product saved successfully!');
+                } catch (err) {
+                    if (err.name === 'QuotaExceededError') {
+                        alert('Storage Limit Exceeded! The images are too large to save locally. Please try smaller images.');
+                    } else {
+                        console.error(err);
+                        alert('Error saving product.');
+                    }
+                }
+
+            } catch (error) {
+                console.error("Error processing images", error);
+                alert("Error processing images.");
+            } finally {
+                saveBtn.innerText = originalBtnText;
+                saveBtn.disabled = false;
+            }
+        }
+
+        function editProduct(id) {
+            const product = products.find(p => p.id == id);
+            openProductModal(product);
+        }
+
+        function deleteProduct(id) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                products = products.filter(p => p.id !== id);
+                localStorage.setItem('clipcart_products', JSON.stringify(products));
+                renderAdmin(document.getElementById('app'));
+            }
+        }
+        
+        // --- SEARCH LOGIC ---
+        function toggleSearchOverlay() {
+            const overlay = document.getElementById('search-overlay');
+            const input = document.getElementById('global-search-input');
+            const resultsContainer = document.getElementById('search-results');
+            
+            if (overlay.classList.contains('hidden')) {
+                overlay.classList.remove('hidden');
+                setTimeout(() => { 
+                    overlay.classList.remove('opacity-0');
+                    input.focus();
+                }, 10);
+            } else {
+                overlay.classList.add('opacity-0');
+                resultsContainer.classList.add('hidden');
+                resultsContainer.innerHTML = '';
+                input.value = '';
+                setTimeout(() => { 
+                    overlay.classList.add('hidden');
+                }, 300); // Match transition duration
+            }
+        }
+
+        function setupSearch() {
+            const input = document.getElementById('global-search-input');
+            if (!input) return; // Exit if not found
+            const resultsContainer = document.getElementById('search-results');
+
+            input.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase().trim();
+                
+                if (term.length < 2) {
+                    resultsContainer.classList.add('hidden');
+                    return;
+                }
+
+                // Simple search logic: filter top 5 results
+                const searchResults = products.filter(p => 
+                    p.title.toLowerCase().includes(term) || 
+                    p.category.toLowerCase().includes(term)
+                ).slice(0, 5);
+
+                if (searchResults.length > 0) {
+                    resultsContainer.innerHTML = searchResults.map(p => {
+                        const titleHtml = p.title.replace(new RegExp(term, 'gi'), match => `<span class="highlight">${match}</span>`);
+                        return `
+                            <div onclick="navigateTo('products?search=${encodeURIComponent(p.title)}'); toggleSearchOverlay()" class="flex items-center p-3 cursor-pointer hover:bg-slate-50 border-b border-slate-50 last:border-none transition-colors">
+                                <img src="${p.image}" class="w-12 h-12 object-cover rounded-md mr-3">
+                                <div>
+                                    <div class="font-medium text-slate-800 text-sm">${titleHtml}</div>
+                                    <div class="text-xs text-slate-500">$${p.price.toFixed(2)} • ${p.category}</div>
+                                </div>
+                            </div>
+                        `}).join('') + `
+                        <div onclick="navigateTo('products?search=${term}'); toggleSearchOverlay()" class="p-3 text-center text-primary text-sm font-medium cursor-pointer hover:bg-slate-50">
+                            See all results for "${e.target.value}"
+                        </div>
+                    `;
+                    resultsContainer.classList.remove('hidden');
+                } else {
+                    resultsContainer.innerHTML = `<div class="p-4 text-center text-slate-500 text-sm">No results found.</div>`;
+                    resultsContainer.classList.remove('hidden');
+                }
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && !document.getElementById('search-overlay').classList.contains('hidden')) {
+                    toggleSearchOverlay();
+                }
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
